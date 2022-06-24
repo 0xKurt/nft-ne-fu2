@@ -6,8 +6,8 @@
 ---
 
 # Table of Contents
-- [NFT contract based on ERC721A](#nft-contract-based-on-erc721a)
-- [Table of Contents](#table-of-contents)
+<!-- - [NFT contract based on ERC721A](#nft-contract-based-on-erc721a)
+- [Table of Contents](#table-of-contents) -->
   - [Description](#description)
       - [Pre- and Public minting](#pre--and-public-minting)
       - [Free minting](#free-minting)
@@ -20,11 +20,7 @@
   - [Deployment and Initialization](#deployment-and-initialization)
     - [Deployment using Remix](#deployment-using-remix)
     - [Initialization using Remix](#initialization-using-remix)
-   #####
-2. [Deployment and Initialization](#deployment-and-initialization)
-   1. [Deployment using Remix](#deployment-using-remix)
-   2. [Initialization using Remix](#initialization-using-remix)
-
+  
 ---
 
 
@@ -40,10 +36,13 @@ The NFT contract contains the following features:
   
   The contract implements pre-minting and public-minting. The pre-mint period starts at `_preMintStart` and ends at the moment when the public mint starts `_publicMintStart`. The public-mint ends at `_publicMintEnd`. 
   The owner can set these periods during initialization (see below) or by using the following functions: `setPreMintStart(uint256 _preMintStart) `, `setPublicMintStart(uint256 _publicMintStart)` and `setPublicMintEnd(uint256 _publicMintEnd)`.
-  The functions mentioned above take unix timestamps as parameter. For example 1656062195 for Fri Jun 24 2022 09:16:35 GMT+0. You can use [Dan's Tools](https://www.unixtimestamp.com/) to get the timestamp.
+  The functions mentioned above take unix timestamps as parameter. 
+  For example 1656062195 for Fri Jun 24 2022 09:16:35 GMT+0. 
+  You can use [Dan's Tools](https://www.unixtimestamp.com/) to get the timestamp.
   
   The owner can set minting prices for both periods. They can be set during initialization (see below) or by using the following functions:
-  `setPreMintPrice(uint256 _price)` and `setPublicMintPrice(uint256 _price)`. Both functions take a price in wei as parameter. For Example: 1000000000000000000 for 1 Ether. You can use [Eth. Unit Converter](https://eth-converter.com/) to calculate the price.
+  `setPreMintPrice(uint256 _price)` and `setPublicMintPrice(uint256 _price)`. Both functions take a price in wei as parameter. 
+  For Example: 1000000000000000000 for 1 Ether. You can use [Eth. Unit Converter](https://eth-converter.com/) to calculate the price.
   
   To participate in the pre-minting process, a user must be whitelisted.
   To whitelist a user the owner can call `addToWhitelist(address _toAdd)` to add a single user or `addManyToWhitelist(address[] memory _addresses)` to add multiple users at once.
@@ -56,7 +55,7 @@ The NFT contract contains the following features:
   The user has to pay for his NFTs only after the free amount is reached.
   The free NFTs can only be minted during pre- and public minting periods.
   The owner of the contract can change this number at any time by calling `setFreeMintAmount(uint256 _freeMintAmount)`.
-  
+
   If the free mint amount is set to 1000, 999 NFTs are already minted and a user wants to mint 3 NFTs at one time. The user will receive 1 free NFT and only needs to pay for 2 NFTs.
   
   ##
