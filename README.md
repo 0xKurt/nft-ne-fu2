@@ -15,7 +15,7 @@
    6. [Withdraw ETH](#withdraw-eth)
    7. [Recover ERC20 token](#recover-erc20-token)
    8. [Burn](#burn)
-   #####
+   ###
 2. [Deployment and Initialization](#deployment-and-initialization)
    1. [Deployment using Remix](#deployment-using-remix)
    2. [Initialization using Remix](#initialization-using-remix)
@@ -30,7 +30,7 @@ The main contracts are `contracts/NFT.sol` and `contracts/single-file/NFT_flat.s
 The NFT contract contains the following features:
 ##
 
-####Pre- and Public minting
+###Pre- and Public minting
   The owner can define 3 timestamps to define the minting periods and two prices for each minting period. The contract implements pre-minting and public-minting. The pre-mint period starts at `_preMintStart` and ends at the moment when the public mint starts `_publicMintStart`. The public-mint ends at `_publicMintEnd`. The owner can set these periods during initialization (see below) or by using the following functions:
   `setPreMintStart(uint256 _preMintStart) `, `setPublicMintStart(uint256 _publicMintStart)` and `setPublicMintEnd(uint256 _publicMintEnd)`.
   The functions mentioned above take unix timestamps as parameter. For example 1656062195 for Fri Jun 24 2022 09:16:35 GMT+0. You can use [Dan's Tools](https://www.unixtimestamp.com/) to get the timestamp.
@@ -42,7 +42,7 @@ The NFT contract contains the following features:
   
   ##
 
-####Free minting
+###Free minting
   The owner can set an amount of NFTs during the initialization which are free to mint. If you set this number to 1000, the first 1000 NFTs will be free to mint. Set the number to 0 if you don't need any free NFTs.
   The user has to pay for his NFTs only after the free amount is reached.
   The free NFTs can only be minted during pre- and public minting periods.
@@ -52,14 +52,14 @@ The NFT contract contains the following features:
   ##
 
 
-####Max mint amount
+###Max mint amount
   During initialization the owner can set a maximum amount a user can hold. If you set this number to 5, the maximum amount the user can hold is 5.
   If the user has 0 NFTs he can mint 5 at once. If the user already minted 1 NFT, he is only allowed to mint 4 in addition.
   The owner can change this number at any time by calling `setMaxMintAmount(uint256 _maxMintAmount)`
 
   ##
   
-####Revealing
+###Revealing
   During the minting periods the user will not see their real NFT metadata.
   For this the owner must pass a URL of the metadata json which will be shown until the collection will be revealed during the initialization. (see below)
   To reveal the collection, the owner has to call `reveal(string memory _baseUri)` and pass the new baseURI.
@@ -67,21 +67,21 @@ The NFT contract contains the following features:
  
   ##
 
-####Pause minting
+###Pause minting
   The owner can pause and unpause minting at any time by calling `pause` or `unpause`.
 
   ##
 
-####Withdraw ETH
+###Withdraw ETH
   Only the owner is allowed to withdraw ETH form the contract by calling `withdraw`
   
   ##
 
-####Recover ERC20 token
+###Recover ERC20 token
   If someone accidentally sends ERC20 Token to the NFT contract, the owner is able to withdraw them by calling `recoverERC20(_tokenAddress, _receiver)`
   ##
 
-####Burn
+###Burn
   Every token holder can burn the NFT he owns by calling `burn(tokenId)`
   
   ##
