@@ -4,7 +4,7 @@
 
 ## Description
 
-The main contracts are `NFT.sol` and `single-file/NFT_flat.sol`. Both contracts contain the same code, the single file contract is just flattened (one file contains all libraries and related code) for easy use with remix.
+The main contracts are `contracts/NFT.sol` and `contracts/single-file/NFT_flat.sol`. Both contracts contain the same code, the single file contract is just flattened (one file contains all libraries and related code) for easy use with remix.
 
 The NFT contract contains the following features:
 
