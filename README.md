@@ -64,23 +64,23 @@ The NFT contract contains the following features:
 
 - Open [Remix](https://remix.ethereum.org)
 - Go to the File Explorer, create a new file, name it and in the editor paste the contract code from `contracts/single-file/NFT_flat.sol`
-- With the contract above as the active tab in the Editor, compile the contract using compiler version ==0.8.4==
-- Go to the Deploy & Run Transactions plugin and choose the environment ==Injected Web3== (make sure you connect your wallet browser extension to the correct network)
-- Choose the Contract called ==NFT== and click on ==Deploy==
+- With the contract above as the active tab in the Editor, compile the contract using compiler version **0.8.4**
+- Go to the Deploy & Run Transactions plugin and choose the environment **Injected Web3** (make sure you connect your wallet browser extension to the correct network)
+- Choose the Contract called **NFT** and click on **Deploy**
 
 **Initialization using Remix**
 
 After deployment you need to initialize the NFT contract. Please click on the caret to the left of the instance of NFT will open it up so you can see its functions.
 
-Search for ==initialize== and click on the arrow to expand the view. You need to pass the parameters described below and click on ==transact== afterwards:
+Search for **initialize** and click on the arrow to expand the view. You need to pass the parameters described below and click on **transact** afterwards:
 
 - `_name`: *Name of the NFT. For example: CryptoZombies*
 - `_symbol`: *Symbol of the NFT. For example: ZOMBIE*
 - `_notRevealedUri`: *URL of the metadata json which will be shown until the collection will be revealed. For example: https://gateway.ipfs.io/ipfs/bafybeibnsoufr2renqzsh347nrx54wcubt5lgkeivez63xvivplfwhtpym/metadata.json*
 - `_maxMintAmount`: *Maximum amount of NFTs a user can mint.*
 - `_freeMintAmount`: *Amount of free NFTs. If you set this number to 1000, the first 1000 NFTs will be free. Set the number to 0 if you don't need any free NFTs.*
-- `_preMintPrice`: *The price a user has to pay for 1 NFT during pre-mint period in ==wei==. For Example: 1000000000000000000 for 1 Ether. You can use [Eth. Unit Converter](https://eth-converter.com/) to calculate the amount.*
-- `_pubMintPrice` *The price a user has to pay for 1 NFT during public-mint period in ==wei==. Example see above.*
+- `_preMintPrice`: *The price a user has to pay for 1 NFT during pre-mint period in **wei**. For Example: 1000000000000000000 for 1 Ether. You can use [Eth. Unit Converter](https://eth-converter.com/) to calculate the amount.*
+- `_pubMintPrice` *The price a user has to pay for 1 NFT during public-mint period in **wei**. Example see above.*
 - `_maxSupply`: *Maximum total amount of NFTs the users can mint.*
 - `_preMintStart`: *The timestamp of the date when pre-minting starts. For example 1656062195 for Fri Jun 24 2022 09:16:35 GMT+0. You can use [Dan's Tools](https://www.unixtimestamp.com/) to get the timestamp*
 - `_publicMintStart`: *The timestamp of the date when public-minting starts. Example see above.*
