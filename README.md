@@ -14,6 +14,7 @@
       - [Max mint amount](#max-mint-amount)
       - [Revealing](#revealing)
       - [Pause minting](#pause-minting)
+      - [Withdraw ETH](#withdraw-eth)
       - [Recover ERC20 token](#recover-erc20-token)
       - [Burn](#burn)
   - [Deployment and Initialization](#deployment-and-initialization)
@@ -76,7 +77,7 @@ The NFT contract contains the following features:
 
   ##
 
-####Withdraw ETH
+#### Withdraw ETH
   Only the owner is allowed to withdraw ETH form the contract by calling `withdraw`
   
   ##
@@ -110,7 +111,7 @@ Search for **initialize** and click on the arrow to expand the view. You need to
 
 - `_name`: *Name of the NFT. For example: CryptoZombies*
 - `_symbol`: *Symbol of the NFT. For example: ZOMBIE*
-- `_notRevealedUri`: *URL of the metadata json which will be shown until the collection will be revealed. For example: https://gateway.ipfs.io/ipfs/bafybeibnsoufr2renqzsh347nrx54wcubt5lgkeivez63xvivplfwhtpym/metadata.json*
+- `_notRevealedUri`: *URL of the metadata json which will be shown until the collection will be revealed. For example: [https://gateway.ipfs.io/ipfs/bafybeibnso...xvivplfwhtpym/metadata.json](https://gateway.ipfs.io/ipfs/bafybeibnsoufr2renqzsh347nrx54wcubt5lgkeivez63xvivplfwhtpym/metadata.json)*
 - `_maxMintAmount`: *Maximum amount of NFTs a user can mint.*
 - `_freeMintAmount`: *Amount of free NFTs. If you set this number to 1000, the first 1000 NFTs will be free. Set the number to 0 if you don't need any free NFTs.*
 - `_preMintPrice`: *The price a user has to pay for 1 NFT during pre-mint period in **wei**. For Example: 1000000000000000000 for 1 Ether. You can use [Eth. Unit Converter](https://eth-converter.com/) to calculate the amount.*
