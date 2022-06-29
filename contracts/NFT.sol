@@ -9,11 +9,13 @@ import "./lib/Init.sol";
 
 contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
     mapping(address => bool) whitelist;
+    mapping(address => uint256) mintedFree;
     uint256 public maxSupply;
     uint256 public preMintPrice;
     uint256 public pubMintPrice;
     uint256 public maxMintAmount; // max allowed to mint
     uint256 public freeMintAmount;
+    uint256 public freeMintAmountPerUser;
     uint256 public preMintStart;
     uint256 public publicMintStart;
     uint256 public publicMintEnd;
@@ -30,6 +32,7 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
         string memory _notRevealedUri,
         uint256 _maxMintAmount,
         uint256 _freeMintAmount,
+        uint256 _freeMintAmountPerUser,
         uint256 _preMintPrice,
         uint256 _pubMintPrice,
         uint256 _maxSupply,
@@ -44,6 +47,7 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
         pubMintPrice = _pubMintPrice;
         maxSupply = _maxSupply;
         freeMintAmount = _freeMintAmount;
+        freeMintAmountPerUser = _freeMintAmountPerUser;
         preMintStart = _preMintStart;
         publicMintStart = _publicMintStart;
         publicMintEnd = _publicMintEnd;
@@ -87,14 +91,26 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
         bool isPreMint = block.timestamp >= preMintStart &&
             block.timestamp <= publicMintStart;
 
-        if (freeMintAmount == 0 || totalSupply() >= freeMintAmount) {
+        if (
+            freeMintAmount == 0 ||
+            freeMintAmountPerUser == 0 ||
+            mintedFree[msg.sender] >= freeMintAmountPerUser
+        ) {
             amountToPay = _amount * (isPreMint ? preMintPrice : pubMintPrice);
         } else {
-            uint256 diffSupply = freeMintAmount - totalSupply();
-            if (_amount >= diffSupply) {
+            uint256 canMintFree = freeMintAmountPerUser - mintedFree[msg.sender];
+            canMintFree = canMintFree > freeMintAmount ? freeMintAmount : canMintFree;
+
+            if (_amount >= canMintFree) {
+                mintedFree[msg.sender] += canMintFree;
                 amountToPay =
-                    (_amount - diffSupply) *
+                    (_amount - canMintFree) *
                     (isPreMint ? preMintPrice : pubMintPrice);
+                freeMintAmount -= canMintFree;
+            } else {
+                mintedFree[msg.sender] += _amount;
+                amountToPay = 0;
+                freeMintAmount -= _amount;
             }
         }
 
@@ -107,7 +123,10 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
     }
 
     function burn(uint256 _tokenId) external {
-        require(ownerOf(_tokenId) == msg.sender, "Sender is nor owner of this token");
+        require(
+            ownerOf(_tokenId) == msg.sender,
+            "Sender is nor owner of this token"
+        );
         _burn(_tokenId);
     }
 
@@ -269,6 +288,15 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
         emit PublicMintPriceSet(_price);
     }
 
+    function setFreeMintAmountPerUser(uint256 _freeMintAmountPerUser)
+        external
+        onlyOwner
+    {
+        freeMintAmountPerUser = _freeMintAmountPerUser;
+
+        emit FreeMintAmountPerUserSet(freeMintAmountPerUser);
+    }
+
     function withdraw() public onlyOwner {
         (bool success, ) = payable(owner()).call{value: address(this).balance}(
             ""
@@ -296,4 +324,5 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
     event PublicMintEndSet(uint256 newPublicMintEnd);
     event PreMintPriceSet(uint256 newPresalePrice);
     event PublicMintPriceSet(uint256 newPublicSalePrice);
+    event FreeMintAmountPerUserSet(uint256 newFreeMintAmount);
 }

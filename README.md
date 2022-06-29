@@ -56,6 +56,8 @@ The NFT contract contains the following features:
   The free NFTs can only be minted during pre- and public minting periods.
   The owner of the contract can change this number at any time by calling `setFreeMintAmount(uint256 _freeMintAmount)`.
 
+  Besides that, the owner can set the amount of NFTs a single user can mint for free. The owner of the contract can change this number at any time by calling `setFreeMintAmountPerUser(uint256 _freeMintAmount)`.
+
   If the free mint amount is set to 1000, 999 NFTs are already minted and a user wants to mint 3 NFTs at one time. The user will receive 1 free NFT and only needs to pay for 2 NFTs.
   
   ##
@@ -103,7 +105,7 @@ The NFT contract contains the following features:
 
 - Open [Remix](https://remix.ethereum.org)
 - Go to the File Explorer, create a new file, name it and in the editor paste the contract code from `contracts/single-file/NFT_flat.sol`
-- With the contract above as the active tab in the Editor, compile the contract using compiler version **0.8.4**
+- With the contract above as the active tab in the Editor, compile the contract using compiler version **0.8.4** and **enable optimization: 200**
 - Go to the Deploy & Run Transactions plugin and choose the environment **Injected Web3** (make sure you connect your wallet browser extension to the correct network)
 - Choose the Contract called **NFT** and click on **Deploy**
 
@@ -118,6 +120,7 @@ Search for **initialize** and click on the arrow to expand the view. You need to
 - `_notRevealedUri`: *URL of the metadata json which will be shown until the collection will be revealed. For example: [https://gateway.ipfs.io/ipfs/bafybeibnso...xvivplfwhtpym/metadata.json](https://gateway.ipfs.io/ipfs/bafybeibnsoufr2renqzsh347nrx54wcubt5lgkeivez63xvivplfwhtpym/metadata.json)*
 - `_maxMintAmount`: *Maximum amount of NFTs a user can mint.*
 - `_freeMintAmount`: *Amount of free NFTs. If you set this number to 1000, the first 1000 NFTs will be free. Set the number to 0 if you don't need any free NFTs.*
+- `_freeMintAmountPerUser`: *Amount of free NFTs a single user can mint. You can set it to 0.
 - `_preMintPrice`: *The price a user has to pay for 1 NFT during pre-mint period in **wei**. For Example: 1000000000000000000 for 1 Ether. You can use [Eth. Unit Converter](https://eth-converter.com/) to calculate the amount.*
 - `_pubMintPrice` *The price a user has to pay for 1 NFT during public-mint period in **wei**. Example see above.*
 - `_maxSupply`: *Maximum total amount of NFTs the users can mint.*
