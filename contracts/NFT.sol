@@ -98,8 +98,11 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
         ) {
             amountToPay = _amount * (isPreMint ? preMintPrice : pubMintPrice);
         } else {
-            uint256 canMintFree = freeMintAmountPerUser - mintedFree[msg.sender];
-            canMintFree = canMintFree > freeMintAmount ? freeMintAmount : canMintFree;
+            uint256 canMintFree = freeMintAmountPerUser -
+                mintedFree[msg.sender];
+            canMintFree = canMintFree > freeMintAmount
+                ? freeMintAmount
+                : canMintFree;
 
             if (_amount >= canMintFree) {
                 mintedFree[msg.sender] += canMintFree;
@@ -119,6 +122,22 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
             "Not enough ETH to pay for minting"
         );
 
+        _safeMint(_to, _amount);
+    }
+
+    function mintOwner(address _to, uint256 _amount)
+        external
+        payable
+        whenNotPaused
+        isInitialized
+        mintActive
+        onlyOwner
+    {
+        require(
+            _amount > 0 && _amount <= maxMintAmount,
+            "Invalid mint amount!"
+        );
+        require(totalSupply() + _amount <= maxSupply, "Max supply exceeded!");
         _safeMint(_to, _amount);
     }
 
