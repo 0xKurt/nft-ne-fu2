@@ -134,7 +134,7 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
         onlyOwner
     {
         require(
-            _amount > 0 && _amount <= maxMintAmount,
+            _amount > 0,
             "Invalid mint amount!"
         );
         require(totalSupply() + _amount <= maxSupply, "Max supply exceeded!");

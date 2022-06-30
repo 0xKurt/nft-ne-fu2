@@ -1951,7 +1951,7 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
 
         _safeMint(_to, _amount);
     }
-    
+
     function mintOwner(address _to, uint256 _amount)
         external
         payable
@@ -1961,7 +1961,7 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
         onlyOwner
     {
         require(
-            _amount > 0 && _amount <= maxMintAmount,
+            _amount > 0,
             "Invalid mint amount!"
         );
         require(totalSupply() + _amount <= maxSupply, "Max supply exceeded!");
