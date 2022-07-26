@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+
 // File: nft-ne-fu2/contracts/lib/Init.sol
 
 
@@ -29,7 +29,7 @@ contract Init {
 // File: @openzeppelin/contracts/utils/Address.sol
 
 
-// OpenZeppelin Contracts (last updated v4.5.0) (utils/Address.sol)
+// OpenZeppelin Contracts (last updated v4.7.0) (utils/Address.sol)
 
 pragma solidity ^0.8.1;
 
@@ -239,7 +239,7 @@ library Address {
             // Look for revert reason and bubble it up if present
             if (returndata.length > 0) {
                 // The easiest way to bubble the revert reason is using memory via assembly
-
+                /// @solidity memory-safe-assembly
                 assembly {
                     let returndata_size := mload(returndata)
                     revert(add(32, returndata), returndata_size)
@@ -249,6 +249,69 @@ library Address {
             }
         }
     }
+}
+
+// File: @openzeppelin/contracts/token/ERC20/extensions/draft-IERC20Permit.sol
+
+
+// OpenZeppelin Contracts v4.4.1 (token/ERC20/extensions/draft-IERC20Permit.sol)
+
+pragma solidity ^0.8.0;
+
+/**
+ * @dev Interface of the ERC20 Permit extension allowing approvals to be made via signatures, as defined in
+ * https://eips.ethereum.org/EIPS/eip-2612[EIP-2612].
+ *
+ * Adds the {permit} method, which can be used to change an account's ERC20 allowance (see {IERC20-allowance}) by
+ * presenting a message signed by the account. By not relying on {IERC20-approve}, the token holder account doesn't
+ * need to send a transaction, and thus is not required to hold Ether at all.
+ */
+interface IERC20Permit {
+    /**
+     * @dev Sets `value` as the allowance of `spender` over ``owner``'s tokens,
+     * given ``owner``'s signed approval.
+     *
+     * IMPORTANT: The same issues {IERC20-approve} has related to transaction
+     * ordering also apply here.
+     *
+     * Emits an {Approval} event.
+     *
+     * Requirements:
+     *
+     * - `spender` cannot be the zero address.
+     * - `deadline` must be a timestamp in the future.
+     * - `v`, `r` and `s` must be a valid `secp256k1` signature from `owner`
+     * over the EIP712-formatted function arguments.
+     * - the signature must use ``owner``'s current nonce (see {nonces}).
+     *
+     * For more information on the signature format, see the
+     * https://eips.ethereum.org/EIPS/eip-2612#specification[relevant EIP
+     * section].
+     */
+    function permit(
+        address owner,
+        address spender,
+        uint256 value,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external;
+
+    /**
+     * @dev Returns the current nonce for `owner`. This value must be
+     * included whenever a signature is generated for {permit}.
+     *
+     * Every successful call to {permit} increases ``owner``'s nonce by one. This
+     * prevents a signature from being used multiple times.
+     */
+    function nonces(address owner) external view returns (uint256);
+
+    /**
+     * @dev Returns the domain separator used in the encoding of the signature for {permit}, as defined by {EIP712}.
+     */
+    // solhint-disable-next-line func-name-mixedcase
+    function DOMAIN_SEPARATOR() external view returns (bytes32);
 }
 
 // File: @openzeppelin/contracts/token/ERC20/IERC20.sol
@@ -339,9 +402,10 @@ interface IERC20 {
 // File: @openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 
-// OpenZeppelin Contracts v4.4.1 (token/ERC20/utils/SafeERC20.sol)
+// OpenZeppelin Contracts (last updated v4.7.0) (token/ERC20/utils/SafeERC20.sol)
 
 pragma solidity ^0.8.0;
+
 
 
 
@@ -416,6 +480,22 @@ library SafeERC20 {
             uint256 newAllowance = oldAllowance - value;
             _callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, newAllowance));
         }
+    }
+
+    function safePermit(
+        IERC20Permit token,
+        address owner,
+        address spender,
+        uint256 value,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) internal {
+        uint256 nonceBefore = token.nonces(owner);
+        token.permit(owner, spender, value, deadline, v, r, s);
+        uint256 nonceAfter = token.nonces(owner);
+        require(nonceAfter == nonceBefore + 1, "SafeERC20: permit did not succeed");
     }
 
     /**
@@ -514,7 +594,7 @@ abstract contract Context {
 // File: @openzeppelin/contracts/security/Pausable.sol
 
 
-// OpenZeppelin Contracts v4.4.1 (security/Pausable.sol)
+// OpenZeppelin Contracts (last updated v4.7.0) (security/Pausable.sol)
 
 pragma solidity ^0.8.0;
 
@@ -549,13 +629,6 @@ abstract contract Pausable is Context {
     }
 
     /**
-     * @dev Returns true if the contract is paused, and false otherwise.
-     */
-    function paused() public view virtual returns (bool) {
-        return _paused;
-    }
-
-    /**
      * @dev Modifier to make a function callable only when the contract is not paused.
      *
      * Requirements:
@@ -563,7 +636,7 @@ abstract contract Pausable is Context {
      * - The contract must not be paused.
      */
     modifier whenNotPaused() {
-        require(!paused(), "Pausable: paused");
+        _requireNotPaused();
         _;
     }
 
@@ -575,8 +648,29 @@ abstract contract Pausable is Context {
      * - The contract must be paused.
      */
     modifier whenPaused() {
-        require(paused(), "Pausable: not paused");
+        _requirePaused();
         _;
+    }
+
+    /**
+     * @dev Returns true if the contract is paused, and false otherwise.
+     */
+    function paused() public view virtual returns (bool) {
+        return _paused;
+    }
+
+    /**
+     * @dev Throws if the contract is paused.
+     */
+    function _requireNotPaused() internal view virtual {
+        require(!paused(), "Pausable: paused");
+    }
+
+    /**
+     * @dev Throws if the contract is not paused.
+     */
+    function _requirePaused() internal view virtual {
+        require(paused(), "Pausable: not paused");
     }
 
     /**
@@ -625,7 +719,7 @@ abstract contract Pause is Pausable, IsOwner {
 // File: @openzeppelin/contracts/access/Ownable.sol
 
 
-// OpenZeppelin Contracts v4.4.1 (access/Ownable.sol)
+// OpenZeppelin Contracts (last updated v4.7.0) (access/Ownable.sol)
 
 pragma solidity ^0.8.0;
 
@@ -655,6 +749,14 @@ abstract contract Ownable is Context {
     }
 
     /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        _checkOwner();
+        _;
+    }
+
+    /**
      * @dev Returns the address of the current owner.
      */
     function owner() public view virtual returns (address) {
@@ -662,11 +764,10 @@ abstract contract Ownable is Context {
     }
 
     /**
-     * @dev Throws if called by any account other than the owner.
+     * @dev Throws if the sender is not the owner.
      */
-    modifier onlyOwner() {
+    function _checkOwner() internal view virtual {
         require(owner() == _msgSender(), "Ownable: caller is not the owner");
-        _;
     }
 
     /**
@@ -1838,14 +1939,15 @@ pragma solidity ^0.8.4;
 
 
 contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
-    mapping(address => bool) whitelist;
+    mapping(address => bool) mintWhitelist;
+    mapping(address => bool) giveawayWhitelist;
     mapping(address => uint256) mintedFree;
     uint256 public maxSupply;
     uint256 public preMintPrice;
     uint256 public pubMintPrice;
     uint256 public maxMintAmount; // max allowed to mint
     uint256 public freeMintAmount;
-    uint256 public freeMintAmountPerUser;
+    uint256 public giveawayAmountPerUser;
     uint256 public preMintStart;
     uint256 public publicMintStart;
     uint256 public publicMintEnd;
@@ -1862,7 +1964,7 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
         string memory _notRevealedUri,
         uint256 _maxMintAmount,
         uint256 _freeMintAmount,
-        uint256 _freeMintAmountPerUser,
+        uint256 _giveawayAmountPerUser,
         uint256 _preMintPrice,
         uint256 _pubMintPrice,
         uint256 _maxSupply,
@@ -1877,7 +1979,7 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
         pubMintPrice = _pubMintPrice;
         maxSupply = _maxSupply;
         freeMintAmount = _freeMintAmount;
-        freeMintAmountPerUser = _freeMintAmountPerUser;
+        giveawayAmountPerUser = _giveawayAmountPerUser;
         preMintStart = _preMintStart;
         publicMintStart = _publicMintStart;
         publicMintEnd = _publicMintEnd;
@@ -1915,34 +2017,13 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
         );
 
         if (block.timestamp <= publicMintStart)
-            require(whitelist[msg.sender], "Sender not whitelisted");
+            require(mintWhitelist[msg.sender], "Sender not whitelisted");
 
         uint256 amountToPay;
         bool isPreMint = block.timestamp >= preMintStart &&
             block.timestamp <= publicMintStart;
 
-        if (
-            freeMintAmount == 0 ||
-            freeMintAmountPerUser == 0 ||
-            mintedFree[msg.sender] >= freeMintAmountPerUser
-        ) {
-            amountToPay = _amount * (isPreMint ? preMintPrice : pubMintPrice);
-        } else {
-            uint256 canMintFree = freeMintAmountPerUser - mintedFree[msg.sender];
-            canMintFree = canMintFree > freeMintAmount ? freeMintAmount : canMintFree;
-
-            if (_amount >= canMintFree) {
-                mintedFree[msg.sender] += canMintFree;
-                amountToPay =
-                    (_amount - canMintFree) *
-                    (isPreMint ? preMintPrice : pubMintPrice);
-                freeMintAmount -= canMintFree;
-            } else {
-                mintedFree[msg.sender] += _amount;
-                amountToPay = 0;
-                freeMintAmount -= _amount;
-            }
-        }
+        amountToPay = _amount * (isPreMint ? preMintPrice : pubMintPrice);
 
         require(
             msg.value >= amountToPay || msg.sender == owner(),
@@ -1952,6 +2033,36 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
         _safeMint(_to, _amount);
     }
 
+    function claim(uint256 _amount)
+        external
+        payable
+        whenNotPaused
+        isInitialized
+    {
+        require(
+            block.timestamp >= preMintStart &&
+                block.timestamp < publicMintStart,
+            "Claiming is not active"
+        );
+        require(
+            _amount > 0 && _amount <= freeMintAmount,
+            "Invalid mint amount!"
+        );
+        require(totalSupply() + _amount <= maxSupply, "Max supply exceeded!");
+        require(
+            mintedFree[msg.sender] + _amount <= giveawayAmountPerUser,
+            "Free mint per wallet exceeded!"
+        );
+        require(giveawayWhitelist[msg.sender], "Sender not whitelisted");
+
+        freeMintAmount -= _amount;
+        mintedFree[msg.sender] += _amount;
+
+        _safeMint(msg.sender, _amount);
+    }
+
+    //todo: implement giveaway mint
+
     function mintOwner(address _to, uint256 _amount)
         external
         payable
@@ -1960,10 +2071,7 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
         mintActive
         onlyOwner
     {
-        require(
-            _amount > 0,
-            "Invalid mint amount!"
-        );
+        require(_amount > 0, "Invalid mint amount!");
         require(totalSupply() + _amount <= maxSupply, "Max supply exceeded!");
         _safeMint(_to, _amount);
     }
@@ -2038,36 +2146,72 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
         _setBaseURI(_baseUri);
     }
 
-    function addManyToWhitelist(address[] memory _addresses)
+    function addManyToMintWhitelist(address[] memory _addresses)
         external
         onlyOwner
     {
         for (uint256 i = 0; i < _addresses.length; i++) {
-            addToWhitelist(_addresses[i]);
+            addToMintWhitelist(_addresses[i]);
         }
     }
 
-    function removeManyFromWhitelist(address[] memory _addresses)
+    function removeManyFromMintWhitelist(address[] memory _addresses)
         external
         onlyOwner
     {
         for (uint256 i = 0; i < _addresses.length; i++) {
-            removeFromWhitelist(_addresses[i]);
+            removeFromMintWhitelist(_addresses[i]);
         }
     }
 
-    function addToWhitelist(address _toAdd) public onlyOwner {
-        whitelist[_toAdd] = true;
-        emit AddedToWhitelist(_toAdd);
+    function addToMintWhitelist(address _toAdd) public onlyOwner {
+        mintWhitelist[_toAdd] = true;
+        emit AddedToMintWhitelist(_toAdd);
     }
 
-    function removeFromWhitelist(address _toRemove) public onlyOwner {
-        whitelist[_toRemove] = false;
-        emit RemovedFromWhitelist(_toRemove);
+    function removeFromMintWhitelist(address _toRemove) public onlyOwner {
+        mintWhitelist[_toRemove] = false;
+        emit RemovedFromMintWhitelist(_toRemove);
     }
 
-    function isWhitelisted(address _toCheck) external view returns (bool) {
-        return whitelist[_toCheck];
+    function isWhitelistedMint(address _toCheck) external view returns (bool) {
+        return mintWhitelist[_toCheck];
+    }
+
+    function addManyToGiveawayWhitelist(address[] memory _addresses)
+        external
+        onlyOwner
+    {
+        for (uint256 i = 0; i < _addresses.length; i++) {
+            addToGiveawayWhitelist(_addresses[i]);
+        }
+    }
+
+    function removeManyFromGiveawayWhitelist(address[] memory _addresses)
+        external
+        onlyOwner
+    {
+        for (uint256 i = 0; i < _addresses.length; i++) {
+            removeFromGiveawayWhitelist(_addresses[i]);
+        }
+    }
+
+    function addToGiveawayWhitelist(address _toAdd) public onlyOwner {
+        giveawayWhitelist[_toAdd] = true;
+        emit AddedToGiveawayWhitelist(_toAdd);
+    }
+
+    function removeFromGiveawayWhitelist(address _toRemove) public onlyOwner {
+        giveawayWhitelist[_toRemove] = false;
+        emit RemovedFromGiveawayWhitelist(_toRemove);
+    }
+
+    function isWhitelistedGiveaway(address _toCheck)
+        external
+        view
+        returns (bool)
+    {
+        return giveawayWhitelist[_toCheck];
     }
 
     function setMaxSupply(uint256 _maxSupply) external onlyOwner {
@@ -2134,13 +2278,13 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
         emit PublicMintPriceSet(_price);
     }
 
-    function setFreeMintAmountPerUser(uint256 _freeMintAmountPerUser)
+    function setGiveawayAmountPerUser(uint256 _giveawayAmountPerUser)
         external
         onlyOwner
     {
-        freeMintAmountPerUser = _freeMintAmountPerUser;
+        giveawayAmountPerUser = _giveawayAmountPerUser;
 
-        emit FreeMintAmountPerUserSet(freeMintAmountPerUser);
+        emit GiveawayAmountPerUserSet(giveawayAmountPerUser);
     }
 
     function withdraw() public onlyOwner {
@@ -2159,8 +2303,10 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
     // ================== events ==================
 
     event MaxSupplySet(uint256 newMaxSupply);
-    event AddedToWhitelist(address newWhitelist);
-    event RemovedFromWhitelist(address removedWhitelist);
+    event AddedToMintWhitelist(address newWhitelist);
+    event RemovedFromMintWhitelist(address removedWhitelist);
+    event AddedToGiveawayWhitelist(address newWhitelist);
+    event RemovedFromGiveawayWhitelist(address removedWhitelist);
     event MaxMintAmountSet(uint256 newMaxMintAmount);
     event RevealedSet(bool newRevealed);
     event BaseURIChanged(string newBaseURI);
@@ -2170,5 +2316,5 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
     event PublicMintEndSet(uint256 newPublicMintEnd);
     event PreMintPriceSet(uint256 newPresalePrice);
     event PublicMintPriceSet(uint256 newPublicSalePrice);
-    event FreeMintAmountPerUserSet(uint256 newFreeMintAmount);
+    event GiveawayAmountPerUserSet(uint256 newFreeMintAmount);
 }

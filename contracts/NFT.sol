@@ -8,14 +8,15 @@ import "./lib/ERC20Recovery.sol";
 import "./lib/Init.sol";
 
 contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
-    mapping(address => bool) whitelist;
+    mapping(address => bool) mintWhitelist;
+    mapping(address => bool) giveawayWhitelist;
     mapping(address => uint256) mintedFree;
     uint256 public maxSupply;
     uint256 public preMintPrice;
     uint256 public pubMintPrice;
     uint256 public maxMintAmount; // max allowed to mint
     uint256 public freeMintAmount;
-    uint256 public freeMintAmountPerUser;
+    uint256 public giveawayAmountPerUser;
     uint256 public preMintStart;
     uint256 public publicMintStart;
     uint256 public publicMintEnd;
@@ -32,7 +33,7 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
         string memory _notRevealedUri,
         uint256 _maxMintAmount,
         uint256 _freeMintAmount,
-        uint256 _freeMintAmountPerUser,
+        uint256 _giveawayAmountPerUser,
         uint256 _preMintPrice,
         uint256 _pubMintPrice,
         uint256 _maxSupply,
@@ -47,7 +48,7 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
         pubMintPrice = _pubMintPrice;
         maxSupply = _maxSupply;
         freeMintAmount = _freeMintAmount;
-        freeMintAmountPerUser = _freeMintAmountPerUser;
+        giveawayAmountPerUser = _giveawayAmountPerUser;
         preMintStart = _preMintStart;
         publicMintStart = _publicMintStart;
         publicMintEnd = _publicMintEnd;
@@ -85,37 +86,13 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
         );
 
         if (block.timestamp <= publicMintStart)
-            require(whitelist[msg.sender], "Sender not whitelisted");
+            require(mintWhitelist[msg.sender], "Sender not whitelisted");
 
         uint256 amountToPay;
         bool isPreMint = block.timestamp >= preMintStart &&
             block.timestamp <= publicMintStart;
 
-        if (
-            freeMintAmount == 0 ||
-            freeMintAmountPerUser == 0 ||
-            mintedFree[msg.sender] >= freeMintAmountPerUser
-        ) {
-            amountToPay = _amount * (isPreMint ? preMintPrice : pubMintPrice);
-        } else {
-            uint256 canMintFree = freeMintAmountPerUser -
-                mintedFree[msg.sender];
-            canMintFree = canMintFree > freeMintAmount
-                ? freeMintAmount
-                : canMintFree;
-
-            if (_amount >= canMintFree) {
-                mintedFree[msg.sender] += canMintFree;
-                amountToPay =
-                    (_amount - canMintFree) *
-                    (isPreMint ? preMintPrice : pubMintPrice);
-                freeMintAmount -= canMintFree;
-            } else {
-                mintedFree[msg.sender] += _amount;
-                amountToPay = 0;
-                freeMintAmount -= _amount;
-            }
-        }
+        amountToPay = _amount * (isPreMint ? preMintPrice : pubMintPrice);
 
         require(
             msg.value >= amountToPay || msg.sender == owner(),
@@ -125,6 +102,36 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
         _safeMint(_to, _amount);
     }
 
+    function claim(uint256 _amount)
+        external
+        payable
+        whenNotPaused
+        isInitialized
+    {
+        require(
+            block.timestamp >= preMintStart &&
+                block.timestamp < publicMintStart,
+            "Claiming is not active"
+        );
+        require(
+            _amount > 0 && _amount <= freeMintAmount,
+            "Invalid mint amount!"
+        );
+        require(totalSupply() + _amount <= maxSupply, "Max supply exceeded!");
+        require(
+            mintedFree[msg.sender] + _amount <= giveawayAmountPerUser,
+            "Free mint per wallet exceeded!"
+        );
+        require(giveawayWhitelist[msg.sender], "Sender not whitelisted");
+
+        freeMintAmount -= _amount;
+        mintedFree[msg.sender] += _amount;
+
+        _safeMint(msg.sender, _amount);
+    }
+
+    //todo: implement giveaway mint
+
     function mintOwner(address _to, uint256 _amount)
         external
         payable
@@ -133,10 +140,7 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
         mintActive
         onlyOwner
     {
-        require(
-            _amount > 0,
-            "Invalid mint amount!"
-        );
+        require(_amount > 0, "Invalid mint amount!");
         require(totalSupply() + _amount <= maxSupply, "Max supply exceeded!");
         _safeMint(_to, _amount);
     }
@@ -211,36 +215,72 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
         _setBaseURI(_baseUri);
     }
 
-    function addManyToWhitelist(address[] memory _addresses)
+    function addManyToMintWhitelist(address[] memory _addresses)
         external
         onlyOwner
     {
         for (uint256 i = 0; i < _addresses.length; i++) {
-            addToWhitelist(_addresses[i]);
+            addToMintWhitelist(_addresses[i]);
         }
     }
 
-    function removeManyFromWhitelist(address[] memory _addresses)
+    function removeManyFromMintWhitelist(address[] memory _addresses)
         external
         onlyOwner
     {
         for (uint256 i = 0; i < _addresses.length; i++) {
-            removeFromWhitelist(_addresses[i]);
+            removeFromMintWhitelist(_addresses[i]);
         }
     }
 
-    function addToWhitelist(address _toAdd) public onlyOwner {
-        whitelist[_toAdd] = true;
-        emit AddedToWhitelist(_toAdd);
+    function addToMintWhitelist(address _toAdd) public onlyOwner {
+        mintWhitelist[_toAdd] = true;
+        emit AddedToMintWhitelist(_toAdd);
     }
 
-    function removeFromWhitelist(address _toRemove) public onlyOwner {
-        whitelist[_toRemove] = false;
-        emit RemovedFromWhitelist(_toRemove);
+    function removeFromMintWhitelist(address _toRemove) public onlyOwner {
+        mintWhitelist[_toRemove] = false;
+        emit RemovedFromMintWhitelist(_toRemove);
     }
 
-    function isWhitelisted(address _toCheck) external view returns (bool) {
-        return whitelist[_toCheck];
+    function isWhitelistedMint(address _toCheck) external view returns (bool) {
+        return mintWhitelist[_toCheck];
+    }
+
+    function addManyToGiveawayWhitelist(address[] memory _addresses)
+        external
+        onlyOwner
+    {
+        for (uint256 i = 0; i < _addresses.length; i++) {
+            addToGiveawayWhitelist(_addresses[i]);
+        }
+    }
+
+    function removeManyFromGiveawayWhitelist(address[] memory _addresses)
+        external
+        onlyOwner
+    {
+        for (uint256 i = 0; i < _addresses.length; i++) {
+            removeFromGiveawayWhitelist(_addresses[i]);
+        }
+    }
+
+    function addToGiveawayWhitelist(address _toAdd) public onlyOwner {
+        giveawayWhitelist[_toAdd] = true;
+        emit AddedToGiveawayWhitelist(_toAdd);
+    }
+
+    function removeFromGiveawayWhitelist(address _toRemove) public onlyOwner {
+        giveawayWhitelist[_toRemove] = false;
+        emit RemovedFromGiveawayWhitelist(_toRemove);
+    }
+
+    function isWhitelistedGiveaway(address _toCheck)
+        external
+        view
+        returns (bool)
+    {
+        return giveawayWhitelist[_toCheck];
     }
 
     function setMaxSupply(uint256 _maxSupply) external onlyOwner {
@@ -307,13 +347,13 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
         emit PublicMintPriceSet(_price);
     }
 
-    function setFreeMintAmountPerUser(uint256 _freeMintAmountPerUser)
+    function setGiveawayAmountPerUser(uint256 _giveawayAmountPerUser)
         external
         onlyOwner
     {
-        freeMintAmountPerUser = _freeMintAmountPerUser;
+        giveawayAmountPerUser = _giveawayAmountPerUser;
 
-        emit FreeMintAmountPerUserSet(freeMintAmountPerUser);
+        emit GiveawayAmountPerUserSet(giveawayAmountPerUser);
     }
 
     function withdraw() public onlyOwner {
@@ -332,8 +372,10 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
     // ================== events ==================
 
     event MaxSupplySet(uint256 newMaxSupply);
-    event AddedToWhitelist(address newWhitelist);
-    event RemovedFromWhitelist(address removedWhitelist);
+    event AddedToMintWhitelist(address newWhitelist);
+    event RemovedFromMintWhitelist(address removedWhitelist);
+    event AddedToGiveawayWhitelist(address newWhitelist);
+    event RemovedFromGiveawayWhitelist(address removedWhitelist);
     event MaxMintAmountSet(uint256 newMaxMintAmount);
     event RevealedSet(bool newRevealed);
     event BaseURIChanged(string newBaseURI);
@@ -343,5 +385,5 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
     event PublicMintEndSet(uint256 newPublicMintEnd);
     event PreMintPriceSet(uint256 newPresalePrice);
     event PublicMintPriceSet(uint256 newPublicSalePrice);
-    event FreeMintAmountPerUserSet(uint256 newFreeMintAmount);
+    event GiveawayAmountPerUserSet(uint256 newFreeMintAmount);
 }

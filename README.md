@@ -45,20 +45,23 @@ The NFT contract contains the following features:
   For Example: 1000000000000000000 for 1 Ether. You can use [Eth. Unit Converter](https://eth-converter.com/) to calculate the price.
   
   To participate in the pre-minting process, a user must be whitelisted.
-  To whitelist a user the owner can call `addToWhitelist(address _toAdd)` to add a single user or `addManyToWhitelist(address[] memory _addresses)` to add multiple users at once.
-  To remove a user from the whitelist the owner can call `removeFromWhitelist(address _toRemove)` to remove a single user or `removeManyFromWhitelist(address[] memory _addresses)` to remove multiple users at once.
+  To whitelist a user the owner can call `addToMintWhitelist(address _toAdd)` to add a single user or `addManyToMintWhitelist(address[] memory _addresses)` to add multiple users at once.
+  To remove a user from the whitelist the owner can call `removeFromMintWhitelist(address _toRemove)` to remove a single user or `removeManyFromMintWhitelist(address[] memory _addresses)` to remove multiple users at once.
   
   ##
 
 #### Free minting
-  The owner can set an amount of NFTs during the initialization which are free to mint. If you set this number to 1000, the first 1000 NFTs will be free to mint. Set the number to 0 if you don't need any free NFTs.
-  The user has to pay for his NFTs only after the free amount is reached.
-  The free NFTs can only be minted during pre- and public minting periods.
-  The owner of the contract can change this number at any time by calling `setFreeMintAmount(uint256 _freeMintAmount)`.
+  The owner can set an amount of NFTs during the initialization which are free to claim during premint. Set the number to 0 if you don't need any free NFTs.
+  
+  To claim a free NFT, the whitelisted user has to call `claim(_amount)`;
 
-  Besides that, the owner can set the amount of NFTs a single user can mint for free. The owner of the contract can change this number at any time by calling `setFreeMintAmountPerUser(uint256 _freeMintAmount)`.
+  The owner can set the amount of NFTs a single user can mint for free. The owner of the contract can change this number at any time by calling `setGiveawayAmountPerUser(uint256 _giveawayAmountPerUser)`.
 
-  If the free mint amount is set to 1000, 999 NFTs are already minted and a user wants to mint 3 NFTs at one time. The user will receive 1 free NFT and only needs to pay for 2 NFTs.
+  If the free mint amount is set to 1000, 999 NFTs are already minted and a user wants to mint 3 NFTs at one time. The claim call will fail.
+
+  To be eligible for the giveaway, a user must be whitelisted.
+  To whitelist a user the owner can call `addToGiveawayWhitelist(address _toAdd)` to add a single user or `addManyGiveawayWhitelist(address[] memory _addresses)` to add multiple users at once.
+  To remove a user from the whitelist the owner can call `removeFromGiveawayWhitelist(address _toRemove)` to remove a single user or `removeManyFromGiveawayWhitelist(address[] memory _addresses)` to remove multiple users at once.
   
   ##
 
