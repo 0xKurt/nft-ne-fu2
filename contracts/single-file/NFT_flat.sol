@@ -2065,10 +2065,8 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
 
     function mintOwner(address _to, uint256 _amount)
         external
-        payable
         whenNotPaused
         isInitialized
-        mintActive
         onlyOwner
     {
         require(_amount > 0, "Invalid mint amount!");
@@ -2293,6 +2291,67 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
         );
         require(success);
     }
+    
+ 	function getInfo(address _account) external view returns(
+        bool canMint, uint256 price, uint256 amount, bool canClaim, uint256 claimAmount) {
+            if(block.timestamp >= preMintStart || block.timestamp >= publicMintStart) {
+                if(block.timestamp >= preMintStart && block.timestamp < publicMintStart) {
+                    if(mintWhitelist[_account]) {
+                        if(balanceOf(_account) >= maxMintAmount) {
+                            amount = 0;
+                            canMint = false;
+                            price = 0;
+                        } else {
+                            amount = maxMintAmount - balanceOf(_account);
+                            canMint = true;
+                            price = preMintPrice;
+                        }
+                    } else {
+                        canMint = false;
+                        price = 0;
+                        amount = 0;
+                    }
+                    if(giveawayWhitelist[_account] && freeMintAmount > 0) {
+                        if(mintedFree[_account] >= giveawayAmountPerUser) {
+                            canClaim = false;
+                            claimAmount = 0;
+                        } else {
+                            canClaim = true;
+                            claimAmount = giveawayAmountPerUser - mintedFree[_account];
+                            if(claimAmount > freeMintAmount) {
+                                claimAmount = freeMintAmount;
+                                if(claimAmount == 0) canClaim = false;
+                            }
+                        }
+                    } else {
+                        canClaim = false;
+                        claimAmount = 0;
+                    }
+                } else {
+                    if(balanceOf(_account) >= maxMintAmount) {
+                        amount = 0;
+                        canMint = false;
+                        price = 0;
+                        canClaim = false;
+                        claimAmount = 0;
+                        
+                    } else {
+                        amount = maxMintAmount - balanceOf(_account);
+                        canMint = true;
+                        price = pubMintPrice;
+                        canClaim = false;
+                        claimAmount = 0;
+                    }
+                }
+            } else {
+                canMint = false; 
+                price = 0;
+                amount = 0;
+                canClaim = false;
+                claimAmount = 0;
+            }
+    }
+
 
     // ================== abstract implementations  ==================
 
