@@ -23,7 +23,6 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
     bool public revealed = false;
     string public notRevealedUri;
     string public baseURI;
-    string public baseExtension = ".json";
 
     constructor() Init(false) {}
 
@@ -180,17 +179,7 @@ contract NFT is ERC721A, Ownable, Pause, ERC20Recovery, Init {
             return notRevealedUri;
         }
 
-        string memory currentBaseURI = _baseURI();
-        return
-            bytes(currentBaseURI).length > 0
-                ? string(
-                    abi.encodePacked(
-                        currentBaseURI,
-                        _toString(tokenId),
-                        baseExtension
-                    )
-                )
-                : "";
+        return _baseURI();
     }
 
     // ================== owner functions ==================
